@@ -1,0 +1,194 @@
+### Welcome to the InfluxDB configuration file.
+
+# Once every 24 hours InfluxDB will report anonymous data to m.influxdb.com
+# The data includes raft id (random 8 bytes), os, arch, version, and metadata.
+# We don't track ip addresses of servers reporting. This is only used
+# to track the number of instances running and the versions, which
+# is very helpful for us.
+# Change this option to true to disable reporting.
+reporting-disabled = true
+
+###
+### [meta]
+###
+### Controls the parameters for the Raft consensus group that stores metadata
+### about the InfluxDB cluster.
+###
+
+[meta]
+  dir = "/var/lib/influxdb/meta"
+  hostname = "${INF_META_HOSTNAME}"
+  bind-address = "${INF_META_BIND_ADDRESS}"
+  retention-autocreate = ${INF_META_RETENTION_AUTOCREATE}
+  election-timeout = "${INF_META_ELECTION_TIMEOUT}"
+  heartbeat-timeout = "${INF_META_HEARTBEAT_TIMEOUT}"
+  leader-lease-timeout = "${INF_META_LEADER_LEASE_TIMEOUT}"
+  commit-timeout = "${INF_META_COMMIT_TIMEOUT}"
+
+###
+### [data]
+###
+### Controls where the actual shard data for InfluxDB lives and how it is
+### flushed from the WAL. "dir" may need to be changed to a suitable place
+### for your system, but the WAL settings are an advanced configuration. The
+### defaults should work for most systems.
+###
+
+[data]
+  dir = "/var/lib/influxdb/data"
+  MaxWALSize = ${INF_DATA_MAX_WAL_SIZE} # Maximum size the WAL can reach before a flush. Defaults to 100MB.
+  WALFlushInterval = "${INF_DATA_WAL_FLUSH_INTERVAL}" # Maximum time data can sit in WAL before a flush.
+  WALPartitionFlushDelay = "${INF_DATA_WAL_PARTITION_FLUSH_DELAY}" # The delay time between each WAL partition being flushed.
+
+###
+### [cluster]
+###
+### Controls non-Raft cluster behavior, which generally includes how data is
+### shared across shards.
+###
+
+[cluster]
+  shard-writer-timeout = "${INF_CLUSTER_SHARD_WRITER_TIMEOUT}" # The time within which a shard must respond to write.
+  write-timeout = "${INF_CLUSTER_WRITE_TIMEOUT}" # The time within which a write operation must complete on the cluster.
+
+###
+### [retention]
+###
+### Controls the enforcement of retention policies for evicting old data.
+###
+
+[retention]
+  enabled = ${INF_RETENTION_ENABLED}
+  check-interval = "${INF_RETENTION_CHECK_INTERVAL}"
+
+###
+### [admin]
+###
+### Controls the availability of the built-in, web-based admin interface.
+###
+
+[admin]
+  enabled = ${INF_ADMIN_ENABLED}
+  bind-address = "${INF_ADMIN_BIND_ADDRESS}"
+
+###
+### [http]
+###
+### Controls how the HTTP endpoints are configured. These are the primary
+### mechanism for getting data into and out of InfluxDB.
+###
+
+[http]
+  enabled = ${INF_HTTP_ENABLED}
+  bind-address = "${INF_HTTP_BIND_ADDRESS}"
+  auth-enabled = ${INF_HTTP_AUTH_ENABLED}
+  log-enabled = ${INF_HTTP_LOG_ENABLED}
+  write-tracing = ${INF_HTTP_WRITE_TRACING}
+  pprof-enabled = ${INF_HTTP_PPROF_ENABED}
+
+###
+### [[graphite]]
+###
+### Controls one or many listeners for Graphite data.
+###
+
+[[graphite]]
+  enabled = ${INF_GRAPHITE_ENABLED}
+  bind-address = "${INF_GRAPHITE_BIND_ADDRESS}"
+  protocol = "${INF_GRAPHITE_PROTOCOL}"
+  consistency-level = "${INF_GRAPHITE_CONSISTENCY_LEVEL}"
+  name-separator = "${INF_GRAPHITE_NAME_SEPARATOR}"
+
+  ## "name-schema" configures tag names for parsing the metric name from graphite protocol;
+  ## separated by `name-separator`.
+  ## The "measurement" tag is special and the corresponding field will become
+  ## the name of the metric.
+  ## e.g. "type.host.measurement.device" will parse "server.localhost.cpu.cpu0" as
+  ## {
+  ##     measurement: "cpu",
+  ##     tags: {
+  ##         "type": "server",
+  ##         "host": "localhost,
+  ##         "device": "cpu0"
+  ##     }
+  ## }
+  name-schema = "${INF_GRAPHITE_NAME_SCHEMA}"
+
+  ## If set to true, when the input metric name has more fields than `name-schema` specified,
+  ## the extra fields will be ignored.
+  ## Otherwise an error will be logged and the metric rejected.
+  ignore-unnamed = ${INF_GRAPHITE_IGNORE_UNNAMED}
+
+###
+### [collectd]
+###
+### Controls the listener for collectd data.
+###
+
+[collectd]
+  enabled = ${INF_COLLECTD_ENABLED}
+  bind-address = "${INF_COLLECTD_BIND_ADDRESS}"
+  database = "${INF_COLLECTD_DATABASE}"
+  typesdb = "${INF_COLLECTD_TYPESDB}"
+
+###
+### [opentsdb]
+###
+### Controls the listener for OpenTSDB data.
+###
+
+[opentsdb]
+  enabled = ${INF_OPENTSDB_ENABLED}
+  bind-address = "${INF_OPENTSDB_BIND_ADDRESS}"
+  database = "${INF_OPENTSDB_DATABASE}"
+  retention-policy = "${INF_OPENTSDB_RETENTION_POLICY}"
+
+###
+### [udp]
+###
+### Controls the listener for InfluxDB line protocol data via UDP.
+###
+
+[udp]
+  enabled = ${INF_UDP_ENABLED}
+  bind-address = "${INF_UDP_BIND_ADDRESS}"
+  database = "${INF_UDP_DATABASE}"
+  batch-size = ${INF_UDP_BATCH_SIZE}
+  batch-timeout = "${INF_UDP_BATCH_TIMEOUT}"
+
+###
+### [monitoring]
+###
+
+[monitoring]
+  enabled = ${INF_MONITORING_ENABLED}
+  write-interval = "${INF_MONITORING_WRITE_INTERVAL}"
+
+###
+### [continuous_queries]
+###
+### Controls how continuous queries are run within InfluxDB.
+###
+
+[continuous_queries]
+  enabled = ${INF_CONTINUOUS_QUERIES_ENABLED}
+  recompute-previous-n = ${INF_CONTINUOUS_QUERIES_RECOMPUTE_PREVIOUS_N}
+  recompute-no-older-than = "${INF_CONTINUOUS_QUERIES_RECOMPUTE_NO_OLDER_THAN}"
+  compute-runs-per-interval = ${INF_CONTINUOUS_QUERIES_COMPUTE_RUNS_PER_INTERVAL}
+  compute-no-more-than = "${INF_CONTINUOUS_QUERIES_COMPUTE_NO_MORE_THAN}"
+
+###
+### [hinted-handoff]
+###
+### Controls the hinted handoff feature, which allows nodes to temporarily
+### store queued data when one node of a cluster is down for a short period
+### of time.
+###
+
+[hinted-handoff]
+  enabled = ${INF_HINTED_HANDOFF_ENABLED}
+  dir = "/var/lib/influxdb/hh"
+  max-size = ${INF_HINTED_HANDOFF_MAX_SIZE}
+  max-age = "${INF_HINTED_HANDOFF_MAX_AGE}"
+  retry-rate-limit = ${INF_HINTED_HANDOFF_RETRY_RATE_LIMIT}
+  retry-interval = "${INF_HINTED_HANDOFF_RETRY_INTERVAL}"
