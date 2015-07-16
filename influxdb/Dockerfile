@@ -2,22 +2,22 @@ FROM debian:jessie
 MAINTAINER Matthias Nüßler <m.nuessler@web.de>
 
 ENV INFLUXDB_VERSION 0.9.1
-ENV IMAGE_VERSION 1
+ENV IMAGE_VERSION 2
 
-LABEL Description="Starts an InfluxDB $INFLUXDB_VERSION server" \
+LABEL Description="InfluxDB time series database server $INFLUXDB_VERSION" \
       InfluxDbVersion=$INFLUXDB_VERSION \
       ImageVersion=$IMAGE_VERSION \
       Version="$INFLUXDB_VERSION_$IMAGE_VERSION"
 
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y curl
-RUN curl -sSL https://s3.amazonaws.com/influxdb/influxdb_${INFLUXDB_VERSION}_amd64.deb \
-    -o /tmp/influxdb_${INFLUXDB_VERSION}_amd64.deb
+RUN apt-get update && apt-get upgrade -y && apt-get clean
+ADD https://s3.amazonaws.com/influxdb/influxdb_${INFLUXDB_VERSION}_amd64.deb \
+    /tmp/influxdb_${INFLUXDB_VERSION}_amd64.deb
 RUN dpkg -i /tmp/influxdb_${INFLUXDB_VERSION}_amd64.deb && \
     rm /tmp/influxdb_${INFLUXDB_VERSION}_amd64.deb
-RUN curl -sSL "https://github.com/tianon/gosu/releases/download/1.4/gosu-$(dpkg --print-architecture)" \
-    -o /usr/local/bin/gosu && chmod +x /usr/local/bin/gosu
-RUN apt-get clean
+ADD https://github.com/tianon/gosu/releases/download/1.4/gosu-amd64 \
+    /usr/local/bin/gosu &&
+RUN chmod +x /usr/local/bin/gosu
 
 RUN mkdir -p /var/run/influxdb && chown -R influxdb:influxdb /var/run/influxdb
 RUN mkdir -p /var/lib/influxdb && chown -R influxdb:influxdb /var/lib/influxdb
@@ -34,7 +34,7 @@ EXPOSE 8083 8086 8088 4444 2003 25827
 RUN mkdir -p /usr/share/collectd
 COPY types.db /usr/share/collectd/
 
-COPY docker-entrypoint.sh /
+COPY entrypoint.sh /
 COPY config.toml /etc/influxdb/
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
